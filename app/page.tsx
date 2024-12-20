@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  Autocomplete,
+  AutocompleteItem,
   Checkbox,
   Input,
   Select,
@@ -17,6 +19,7 @@ import {
   useDisclosure,
   DateInput,
   DateValue,
+  Chip,
 } from "@nextui-org/react";
 import { useState } from "react";
 
@@ -29,12 +32,17 @@ interface Todo {
   timeblock: string | null;
   tags: string[];
   backburner: boolean;
-  dependencies: string[];
+  dependencies: Set<string>;
   repeat: {
     unit: "Hour" | "Day" | "Week" | "Month" | "Year";
     ammount: number;
   } | null;
   sorted: boolean;
+}
+
+interface Section {
+  name: string;
+  todos: Todo[];
 }
 
 export default function Home() {
@@ -56,17 +64,40 @@ export default function Home() {
 
   const [todos, setTodos] = useState<Todo[]>([]);
 
-  const updateTodo = (id: string, field: keyof Todo, value: any) => {
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo.id === id ? { ...todo, [field]: value } : todo,
-      ),
+  const [sections, setSections] = useState<Section[]>([]);
+
+  const regenerateSections = (updatedTodos: Todo[]) => {
+    const unsorted = updatedTodos.filter((todo) => !todo.sorted && !todo.done);
+    const done = updatedTodos.filter((todo) => todo.done);
+    const main = updatedTodos.filter((todo) => todo.sorted && !todo.done);
+    const backburner = updatedTodos.filter(
+      (todo) => todo.backburner && !todo.done && todo.sorted
     );
+    //toso: blocked because outside timeblock or unmet dependencies
+
+    setSections([
+      { name: "Unsorted", todos: unsorted },
+      { name: "Main", todos: main },
+      { name: "Backburner", todos: backburner },
+      { name: "Done", todos: done },
+    ]);
+  };
+
+  const updateTodo = (id: string, field: keyof Todo, value: any) => {
+    setTodos((prevTodos) => {
+      const updatedTodos = prevTodos.map((todo) =>
+        todo.id === id ? { ...todo, [field]: value } : todo,
+      );
+
+      regenerateSections(updatedTodos);
+
+      return updatedTodos;
+    });
   };
 
   const addTodo = () => {
-    setTodos((prevTodos) => [
-      {
+    setTodos((prevTodos) => {
+      const newTodo: Todo = {
         id: String(prevTodos.length + 1),
         done: false,
         text: "",
@@ -75,12 +106,16 @@ export default function Home() {
         timeblock: null,
         tags: [],
         backburner: false,
-        dependencies: [],
+        dependencies: new Set(),
         repeat: null,
         sorted: false,
-      },
-      ...prevTodos,
-    ]);
+      };
+      const updatedTodos = [newTodo, ...prevTodos];
+
+      regenerateSections(updatedTodos);
+
+      return updatedTodos;
+    });
   };
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [currentID, setCurrentID] = useState<string | null>(null);
@@ -98,25 +133,39 @@ export default function Home() {
           {(tag) => <SelectItem key={tag.text}>{tag.text}</SelectItem>}
         </Select>
       </div>
-      {todos.map((todo) => (
-        <Card key={todo.id}>
-          <CardBody>
-            <div className="flex gap-2 items-center">
-              <Checkbox
-                isSelected={todo.done}
-                onValueChange={(selected) =>
-                  updateTodo(todo.id, "done", selected)
-                }
-              />
-              <Input
-                value={todo.text}
-                onChange={(e) => updateTodo(todo.id, "text", e.target.value)}
-              />
-              <Button onPress={handleOpen(todo.id)}>Edit Tags</Button>
-              <Switch>Sort</Switch>
-            </div>
-          </CardBody>
-        </Card>
+      {sections.map((section) => (
+        <div key={section.name}>
+          <h2>{section.name}</h2>
+          {section.todos.map((todo) => (
+            <Card key={todo.id}>
+              <CardBody>
+                <div className="flex gap-2 items-center">
+                  <Checkbox
+                    isSelected={todo.done}
+                    onValueChange={(selected) =>
+                      updateTodo(todo.id, "done", selected)
+                    }
+                  />
+                  <Input
+                    value={todo.text}
+                    onChange={(e) =>
+                      updateTodo(todo.id, "text", e.target.value)
+                    }
+                  />
+                  <Button onPress={handleOpen(todo.id)}>Edit Tags</Button>
+                  <Switch
+                    isSelected={todo.sorted}
+                    onValueChange={(selected) =>
+                      updateTodo(todo.id, "sorted", selected)
+                    }
+                  >
+                    Sort
+                  </Switch>
+                </div>
+              </CardBody>
+            </Card>
+          ))}
+        </div>
       ))}
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
         <ModalContent>
@@ -202,25 +251,54 @@ export default function Home() {
                 >
                   Sorted
                 </Switch>
-                <Select
-                  items={todos
-                    .filter((todo) => todo.id !== currentTodo.id)
-                    .map((todo) => ({ text: todo.text }))}
+                <Autocomplete
+                  defaultItems={todos.filter(
+                    (todo) => todo.id !== currentTodo.id,
+                  )}
                   label="Dependencies"
-                  selectedKeys={currentTodo.dependencies}
-                  selectionMode="multiple"
                   onSelectionChange={(selected) => {
+                    if (selected === null) return;
+                    if (typeof selected === "number") return;
                     updateTodo(
                       currentTodo.id,
                       "dependencies",
-                      Array.from(selected),
+                      currentTodo.dependencies.add(selected),
                     );
                   }}
                 >
                   {(todo) => (
-                    <SelectItem key={todo.text}>{todo.text}</SelectItem>
+                    <AutocompleteItem key={todo.id}>
+                      {todo.text}
+                    </AutocompleteItem>
                   )}
-                </Select>
+                </Autocomplete>
+                <div>
+                  {Array.from(currentTodo.dependencies).map((id) => {
+                    const todo = todos.find((todo) => todo.id === id);
+
+                    if (!todo) return null;
+
+                    return (
+                      <Chip
+                        key={todo.id}
+                        onClose={() => {
+                          let newDependencies = new Set(
+                            currentTodo.dependencies,
+                          );
+
+                          newDependencies.delete(todo.id);
+                          updateTodo(
+                            currentTodo.id,
+                            "dependencies",
+                            newDependencies,
+                          );
+                        }}
+                      >
+                        {todo.text}
+                      </Chip>
+                    );
+                  })}
+                </div>
                 <Switch
                   isSelected={currentTodo.repeat !== null}
                   onValueChange={(selected) => {
