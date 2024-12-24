@@ -65,6 +65,7 @@ export default function Home() {
   const [todos, setTodos] = useState<Todo[]>([]);
 
   const sections: Section[] = useMemo(() => {
+    // todo: rewrite spaghetti
     const unsorted = todos.filter((todo) => !todo.sorted && !todo.done);
     const done = todos.filter((todo) => todo.done);
     const main = todos.filter((todo) => todo.sorted && !todo.done);
@@ -277,12 +278,12 @@ export default function Home() {
                 })}
               </div>
               <Switch
-                isSelected={currentTodo.repeat !== null}
+                isSelected={currentTodo.repeat !== undefined}
                 onValueChange={(selected) => {
                   updateTodo(
                     currentTodo.id,
                     "repeat",
-                    selected ? { unit: "Day", ammount: 1 } : null,
+                    selected ? { unit: "Day", ammount: 1 } : undefined,
                   );
                 }}
               >
