@@ -150,9 +150,7 @@ export default function Home() {
                   />
                   <Input
                     value={todo.text}
-                    onChange={(e) =>
-                      updateTodo(todo.id, "text", e.target.value)
-                    }
+                    onValueChange={(t) => updateTodo(todo.id, "text", t)}
                   />
                   <Button onPress={handleOpen(todo.id)}>Edit Tags</Button>
                   <Switch
@@ -176,9 +174,7 @@ export default function Home() {
             <ModalBody>
               <Input
                 value={currentTodo.text}
-                onChange={(e) =>
-                  updateTodo(currentTodo.id, "text", e.target.value)
-                }
+                onValueChange={(t) => updateTodo(currentTodo.id, "text", t)}
               />
               <DateInput
                 label="Start Date"
@@ -296,10 +292,10 @@ export default function Home() {
                 <Input
                   type="number"
                   value={String(currentTodo.repeat.ammount)}
-                  onChange={(e) => {
+                  onValueChange={(t) => {
                     updateTodo(currentTodo.id, "repeat", {
                       unit: currentTodo.repeat!.unit,
-                      ammount: Number(e.target.value),
+                      ammount: Number(t),
                     });
                   }}
                 />
