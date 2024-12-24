@@ -27,16 +27,16 @@ interface Todo {
   id: string;
   done: boolean;
   text: string;
-  start: DateValue | null;
-  end: DateValue | null;
-  timeblock: string | null;
+  start?: DateValue;
+  end?: DateValue;
+  timeblock?: string;
   tags: string[];
   backburner: boolean;
   dependencies: Set<string>;
-  repeat: {
+  repeat?: {
     unit: "Hour" | "Day" | "Week" | "Month" | "Year";
     ammount: number;
-  } | null;
+  };
   sorted: boolean;
 }
 
@@ -100,13 +100,9 @@ export default function Home() {
         id: String(prevTodos.length + 1),
         done: false,
         text: "",
-        start: null,
-        end: null,
-        timeblock: null,
         tags: [],
         backburner: false,
         dependencies: new Set(),
-        repeat: null,
         sorted: false,
       };
       const updatedTodos = [newTodo, ...prevTodos];
@@ -249,11 +245,10 @@ export default function Home() {
                 onSelectionChange={(selected) => {
                   if (selected === null) return;
                   if (typeof selected === "number") return;
-                  updateTodo(
-                    currentTodo.id,
-                    "dependencies",
-                    currentTodo.dependencies.add(selected),
-                  );
+                  let newDependencies = new Set(currentTodo.dependencies);
+
+                  newDependencies.add(selected);
+                  updateTodo(currentTodo.id, "dependencies", newDependencies);
                 }}
               >
                 {(todo) => (
@@ -297,10 +292,10 @@ export default function Home() {
               >
                 Repeat
               </Switch>
-              {currentTodo.repeat !== null && (
+              {currentTodo.repeat && (
                 <Input
                   type="number"
-                  value={String(currentTodo.repeat!.ammount)}
+                  value={String(currentTodo.repeat.ammount)}
                   onChange={(e) => {
                     updateTodo(currentTodo.id, "repeat", {
                       unit: currentTodo.repeat!.unit,
@@ -309,7 +304,7 @@ export default function Home() {
                   }}
                 />
               )}
-              {currentTodo.repeat !== null && (
+              {currentTodo.repeat && (
                 <Select
                   items={[
                     { text: "Hour" },
@@ -319,7 +314,7 @@ export default function Home() {
                     { text: "Year" },
                   ]}
                   label="Repeat Unit"
-                  selectedKeys={[currentTodo.repeat.unit]}
+                  selectedKeys={[currentTodo.repeat?.unit]}
                   onSelectionChange={(selected) => {
                     updateTodo(currentTodo.id, "repeat", {
                       unit: Array.from(selected)[0] as any,
