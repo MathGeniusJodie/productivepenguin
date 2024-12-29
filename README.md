@@ -8,10 +8,8 @@ yarn run dev
 
 ## Wishlist
 
-* smart autosorting and filtering
-* filter by tags
+* smart autosorting and filtering (in progress)
 * edit tags and timeblocks
-* filter out dependencies
 * local persistent storage
 * log edits
 * make timeblocks functional
@@ -20,7 +18,7 @@ yarn run dev
 
 ## Backburner
 
-* limited manual filtering for things with same auto priority
+* limited manual ordering for things with same auto priority
 * multiple accounts and server side storage
 * share wishlist with friends
 * calendar view
