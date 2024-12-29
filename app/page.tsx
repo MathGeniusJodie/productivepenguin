@@ -57,6 +57,7 @@ const tags: { text: string }[] = [
   { text: "Work" },
   { text: "Groceries" },
   { text: "App" },
+  { text: "Mentally Difficult" },
 ];
 
 export default function Home() {
@@ -66,18 +67,54 @@ export default function Home() {
 
   const sections: Section[] = useMemo(() => {
     // todo: rewrite spaghetti
-    const unsorted = todos.filter((todo) => !todo.sorted && !todo.done);
-    const done = todos.filter((todo) => todo.done);
-    const main = todos.filter((todo) => todo.sorted && !todo.done);
-    const backburner = todos.filter(
-      (todo) => todo.backburner && !todo.done && todo.sorted,
-    );
-    //todo: blocked because outside timeblock or unmet dependencies
+    // todo: add sorting
+    let unsorted: Todo[] = [];
+    let done: Todo[] = [];
+    let main: Todo[] = [];
+    let backburner: Todo[] = [];
+    let blocked: Todo[] = [];
+
+    todos.forEach((todo) => {
+      if (todo.done) {
+        done.push(todo);
+
+        return;
+      }
+      if (!todo.sorted) {
+        unsorted.push(todo);
+
+        return;
+      }
+
+      // todo: filter out todos outside of timeblock into blocked
+      // todo: make tags filter functional
+      // todo: sort by how close end date is
+      // todo: filter out todos that aren't past the start time into blocked
+
+      if (
+        Array.from(todo.dependencies).some(
+          (id) => !todos.find((todo) => todo.id === id)?.done,
+        )
+      ) {
+        blocked.push(todo);
+
+        return;
+      }
+
+      if (todo.backburner) {
+        backburner.push(todo);
+
+        return;
+      }
+
+      main.push(todo);
+    });
 
     return [
       { name: "Unsorted", todos: unsorted },
       { name: "Main", todos: main },
       { name: "Backburner", todos: backburner },
+      { name: "Blocked", todos: blocked },
       { name: "Done", todos: done },
     ];
   }, [todos]);
@@ -178,6 +215,7 @@ export default function Home() {
                 onValueChange={(t) => updateTodo(currentTodo.id, "text", t)}
               />
               <DateInput
+                granularity="minute"
                 label="Start Date"
                 value={currentTodo.start}
                 onChange={(date) => {
@@ -185,6 +223,7 @@ export default function Home() {
                 }}
               />
               <DateInput
+                granularity="minute"
                 label="End Date"
                 value={currentTodo.end}
                 onChange={(date) => {
