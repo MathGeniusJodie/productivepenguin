@@ -64,6 +64,7 @@ export default function Home() {
   //todo: fast clear date input and
 
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [filters, setFilters] = useState<Set<string>>(new Set());
 
   const sections: Section[] = useMemo(() => {
     // todo: rewrite spaghetti
@@ -75,6 +76,10 @@ export default function Home() {
     let blocked: Todo[] = [];
 
     todos.forEach((todo) => {
+      if (filters.size > 0 && !todo.tags.some((tag) => filters.has(tag))) {
+        return;
+      }
+
       if (todo.done) {
         done.push(todo);
 
@@ -87,7 +92,6 @@ export default function Home() {
       }
 
       // todo: filter out todos outside of timeblock into blocked
-      // todo: make tags filter functional
       // todo: sort by how close end date is
       // todo: filter out todos that aren't past the start time into blocked
 
@@ -117,7 +121,7 @@ export default function Home() {
       { name: "Blocked", todos: blocked },
       { name: "Done", todos: done },
     ];
-  }, [todos]);
+  }, [todos, filters]);
 
   const updateTodo = useCallback(
     (id: string, field: keyof Todo, value: any) => {
@@ -169,7 +173,21 @@ export default function Home() {
     <div className="flex gap-2 items-stretch flex-col">
       <div className="flex gap-2 items-center">
         <Button onPress={addTodo}>Add Todo</Button>
-        <Select className="w-48" items={tags} label="Applicable Tags">
+        <Select
+          className="w-48"
+          items={tags}
+          label="Applicable Tags"
+          selectedKeys={Array.from(filters)}
+          selectionMode="multiple"
+          onSelectionChange={(selected) => {
+            if (selected === null) {
+              setFilters(new Set());
+
+              return;
+            }
+            setFilters(new Set(Array.from(selected).map((key) => String(key))));
+          }}
+        >
           {(tag) => <SelectItem key={tag.text}>{tag.text}</SelectItem>}
         </Select>
       </div>
@@ -275,7 +293,8 @@ export default function Home() {
               </Switch>
               <Autocomplete
                 defaultItems={todos.filter(
-                  (todo) => todo.id !== currentTodo.id,
+                  (todo) => todo.id !== currentTodo.id && todo.done === false,
+                  //todo: filter out todos that are blocked (use filtered todos?)
                 )}
                 label="Dependencies"
                 onSelectionChange={(selected) => {
