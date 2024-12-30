@@ -16,15 +16,17 @@ import {
   ModalBody,
   ModalFooter,
   Button,
-  useDisclosure,
   DateInput,
   DateValue,
   Chip,
 } from "@nextui-org/react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { CalendarDateTime } from "@internationalized/date";
 
-interface Todo {
+import { useTodos } from "./hooks/useTodos";
+import { useCurrentTodo } from "./hooks/useCurrentTodo";
+
+export interface Todo {
   id: string;
   done: boolean;
   text: string;
@@ -41,7 +43,7 @@ interface Todo {
   sorted: boolean;
 }
 
-interface Section {
+export interface Section {
   name: string;
   todos: Todo[];
 }
@@ -64,8 +66,11 @@ const tags: { text: string }[] = [
 export default function Home() {
   //todo: fast clear date input and
 
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [filters, setFilters] = useState<Set<string>>(new Set());
+  const { setTodos, setFilters, sections, todos, filters } = useTodos();
+
+  const { currentTodo, isOpen, handleOpen, onOpenChange } =
+    useCurrentTodo(todos);
+
   const [currentTime, setCurrentTime] = useState<DateValue>(
     new CalendarDateTime(
       new Date().getFullYear(),
@@ -75,63 +80,6 @@ export default function Home() {
       new Date().getMinutes(),
     ),
   );
-
-  const sections: Section[] = useMemo(() => {
-    // todo: rewrite spaghetti
-    // todo: add sorting
-    let unsorted: Todo[] = [];
-    let done: Todo[] = [];
-    let main: Todo[] = [];
-    let backburner: Todo[] = [];
-    let blocked: Todo[] = [];
-
-    todos.forEach((todo) => {
-      if (filters.size > 0 && !todo.tags.some((tag) => filters.has(tag))) {
-        return;
-      }
-
-      if (todo.done) {
-        done.push(todo);
-
-        return;
-      }
-      if (!todo.sorted) {
-        unsorted.push(todo);
-
-        return;
-      }
-
-      // todo: filter out todos outside of timeblock into blocked
-      // todo: sort by how close end date is
-      // todo: filter out todos that aren't past the start time into blocked
-
-      if (
-        Array.from(todo.dependencies).some(
-          (id) => !todos.find((todo) => todo.id === id)?.done,
-        )
-      ) {
-        blocked.push(todo);
-
-        return;
-      }
-
-      if (todo.backburner) {
-        backburner.push(todo);
-
-        return;
-      }
-
-      main.push(todo);
-    });
-
-    return [
-      { name: "Unsorted", todos: unsorted },
-      { name: "Main", todos: main },
-      { name: "Backburner", todos: backburner },
-      { name: "Blocked", todos: blocked },
-      { name: "Done", todos: done },
-    ];
-  }, [todos, filters]);
 
   const updateTodo = useCallback(
     (id: string, field: keyof Todo, value: any) => {
@@ -143,7 +91,7 @@ export default function Home() {
         return updatedTodos;
       });
     },
-    [],
+    [setTodos],
   );
 
   const addTodo = useCallback(() => {
@@ -161,23 +109,7 @@ export default function Home() {
 
       return updatedTodos;
     });
-  }, []);
-
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [currentID, setCurrentID] = useState<string | null>(null);
-
-  const handleOpen = useCallback(
-    (id: string) => () => {
-      setCurrentID(id);
-      onOpen();
-    },
-    [],
-  );
-
-  const currentTodo = useMemo(
-    () => todos.find((todo) => todo.id === currentID),
-    [currentID, todos],
-  );
+  }, [setTodos]);
 
   return (
     <div className="flex gap-2 items-stretch flex-col">
