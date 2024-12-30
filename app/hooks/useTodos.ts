@@ -6,8 +6,6 @@ export const useTodos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [filters, setFilters] = useState<Set<string>>(new Set());
   const sections: Section[] = useMemo(() => {
-    // todo: rewrite spaghetti
-    // todo: add sorting
     let unsorted: Todo[] = [];
     let done: Todo[] = [];
     let main: Todo[] = [];

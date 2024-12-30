@@ -3,7 +3,6 @@
 import {
   Autocomplete,
   AutocompleteItem,
-  Checkbox,
   Input,
   Select,
   SelectItem,
@@ -19,6 +18,7 @@ import {
   DateInput,
   DateValue,
   Chip,
+  Checkbox,
 } from "@nextui-org/react";
 import { useCallback, useState } from "react";
 import { CalendarDateTime } from "@internationalized/date";
@@ -111,6 +111,8 @@ export default function Home() {
     });
   }, [setTodos]);
 
+  console.log(todos, currentTodo);
+
   return (
     <div className="flex gap-2 items-stretch flex-col">
       <div className="flex gap-2 items-center">
@@ -145,7 +147,9 @@ export default function Home() {
                     onValueChange={(selected) =>
                       updateTodo(todo.id, "done", selected)
                     }
-                  />
+                  >
+                    <slot>{todo.text}</slot>
+                  </Checkbox>
                   <Input
                     value={todo.text}
                     onValueChange={(t) => updateTodo(todo.id, "text", t)}
