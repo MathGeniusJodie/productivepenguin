@@ -22,6 +22,7 @@ import {
   Chip,
 } from "@nextui-org/react";
 import { useCallback, useMemo, useState } from "react";
+import { CalendarDateTime } from "@internationalized/date";
 
 interface Todo {
   id: string;
@@ -65,6 +66,15 @@ export default function Home() {
 
   const [todos, setTodos] = useState<Todo[]>([]);
   const [filters, setFilters] = useState<Set<string>>(new Set());
+  const [currentTime, setCurrentTime] = useState<DateValue>(
+    new CalendarDateTime(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      new Date().getDate(),
+      new Date().getHours(),
+      new Date().getMinutes(),
+    ),
+  );
 
   const sections: Section[] = useMemo(() => {
     // todo: rewrite spaghetti
