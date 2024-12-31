@@ -11,7 +11,6 @@ yarn run dev
 * edit tags and timeblocks
 * local persistent storage
 * log edits
-* make timeblocks functional
 * snooze tasks instead of move to done if recurring task
 * export to json
 
