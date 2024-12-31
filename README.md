@@ -11,7 +11,6 @@ yarn run dev
 * edit tags and timeblocks
 * local persistent storage
 * log edits
-* snooze tasks instead of move to done if recurring task
 * export to json
 
 ## Backburner
@@ -21,3 +20,4 @@ yarn run dev
 * share wishlist with friends
 * calendar view
 * benchmark and optimize
+* capitalize repeats units

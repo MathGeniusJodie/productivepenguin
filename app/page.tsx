@@ -22,6 +22,7 @@ import {
   CardHeader,
 } from "@nextui-org/react";
 import { useCallback, useEffect } from "react";
+import { DateTimeDuration } from "@internationalized/date";
 
 import { useTodos } from "./hooks/useTodos";
 import { useCurrentTodo } from "./hooks/useCurrentTodo";
@@ -37,7 +38,7 @@ export interface Todo {
   backburner: boolean;
   dependencies: Set<string>;
   repeat?: {
-    unit: "Hour" | "Day" | "Week" | "Month" | "Year";
+    unit: "hours" | "days" | "weeks" | "months" | "years";
     ammount: number;
   };
   sorted: boolean;
@@ -155,12 +156,47 @@ export default function Home() {
               ) : null}
               <CardBody>
                 <div className="flex gap-2 items-center">
-                  <Checkbox
-                    isSelected={todo.done}
-                    onValueChange={(selected) =>
-                      updateTodo(todo.id, "done", selected)
-                    }
-                  />
+                  {todo.repeat != undefined ? (
+                    <Button
+                      onPress={() => {
+                        let delta: any = {};
+
+                        if (todo.repeat === undefined) {
+                          return;
+                        }
+                        delta[todo.repeat.unit] = todo.repeat.ammount;
+                        console.log(delta);
+                        if (todo.start) {
+                          updateTodo(
+                            todo.id,
+                            "start",
+                            todo.start.add(delta as DateTimeDuration),
+                          );
+                        }
+                        if (todo.end) {
+                          updateTodo(
+                            todo.id,
+                            "end",
+                            todo.end.add(delta as DateTimeDuration),
+                          );
+                        }
+                      }}
+                    >
+                      Repeat
+                    </Button>
+                  ) : (
+                    <Checkbox
+                      isSelected={todo.done}
+                      onValueChange={(selected) => {
+                        if (!todo.repeat) {
+                          updateTodo(todo.id, "done", selected);
+
+                          return;
+                        }
+                      }}
+                    />
+                  )}
+
                   <Input
                     value={todo.text}
                     onValueChange={(t) => updateTodo(todo.id, "text", t)}
@@ -325,7 +361,7 @@ export default function Home() {
                   updateTodo(
                     currentTodo.id,
                     "repeat",
-                    selected ? { unit: "Day", ammount: 1 } : undefined,
+                    selected ? { unit: "days", ammount: 1 } : undefined,
                   );
                 }}
               >
@@ -346,11 +382,11 @@ export default function Home() {
               {currentTodo.repeat && (
                 <Select
                   items={[
-                    { text: "Hour" },
-                    { text: "Day" },
-                    { text: "Week" },
-                    { text: "Month" },
-                    { text: "Year" },
+                    { text: "hours" },
+                    { text: "days" },
+                    { text: "weeks" },
+                    { text: "months" },
+                    { text: "years" },
                   ]}
                   label="Repeat Unit"
                   selectedKeys={[currentTodo.repeat?.unit]}
