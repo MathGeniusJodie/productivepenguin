@@ -21,7 +21,7 @@ import {
   Checkbox,
   CardHeader,
 } from "@nextui-org/react";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 
 import { useTodos } from "./hooks/useTodos";
 import { useCurrentTodo } from "./hooks/useCurrentTodo";
@@ -71,6 +71,27 @@ export default function Home() {
 
   const { currentTodo, isOpen, handleOpen, onOpenChange } =
     useCurrentTodo(todos);
+
+  // ugly hack to prevent closing the Modals when clicking on DatePickers
+  useEffect(() => {
+    const handleBackdropClick = (e: MouseEvent) => {
+      if (e.target instanceof HTMLElement) {
+        if (e.target.classList.contains("pp-backdrop")) {
+          const closeButton = document.querySelector(
+            ".pp-close",
+          ) as HTMLElement;
+
+          if (closeButton) {
+            closeButton.click();
+          }
+        }
+      }
+    };
+
+    document.addEventListener("click", handleBackdropClick);
+
+    return () => document.removeEventListener("click", handleBackdropClick);
+  }, [onOpenChange]);
 
   const updateTodo = useCallback(
     (id: string, field: keyof Todo, value: any) => {
@@ -166,12 +187,18 @@ export default function Home() {
           ))}
         </div>
       ))}
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal
+        classNames={{ wrapper: "pp-backdrop", closeButton: "pp-close" }}
+        isDismissable={false}
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+      >
         <ModalContent>
           <ModalHeader>Edit Tags</ModalHeader>
           {currentTodo ? (
             <ModalBody>
               <Input
+                label="Text"
                 value={currentTodo.text}
                 onValueChange={(t) => updateTodo(currentTodo.id, "text", t)}
               />
@@ -237,22 +264,22 @@ export default function Home() {
               >
                 {(tag) => <SelectItem key={tag.text}>{tag.text}</SelectItem>}
               </Select>
-              <Switch
+              <Checkbox
                 isSelected={currentTodo.backburner}
                 onValueChange={(selected) =>
                   updateTodo(currentTodo.id, "backburner", selected)
                 }
               >
                 Backburner
-              </Switch>
-              <Switch
+              </Checkbox>
+              <Checkbox
                 isSelected={currentTodo.sorted}
                 onValueChange={(selected) =>
                   updateTodo(currentTodo.id, "sorted", selected)
                 }
               >
                 Sorted
-              </Switch>
+              </Checkbox>
               <Autocomplete
                 defaultItems={todos.filter(
                   (todo) => todo.id !== currentTodo.id && todo.done === false,
@@ -297,7 +324,7 @@ export default function Home() {
                   );
                 })}
               </div>
-              <Switch
+              <Checkbox
                 isSelected={currentTodo.repeat !== undefined}
                 onValueChange={(selected) => {
                   updateTodo(
@@ -308,7 +335,7 @@ export default function Home() {
                 }}
               >
                 Repeat
-              </Switch>
+              </Checkbox>
               {currentTodo.repeat && (
                 <Input
                   type="number"
