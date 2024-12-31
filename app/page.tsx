@@ -25,7 +25,7 @@ import { useCallback, useEffect } from "react";
 
 import { useTodos } from "./hooks/useTodos";
 import { useCurrentTodo } from "./hooks/useCurrentTodo";
-
+import { timeblocks } from "./hooks/useTodos";
 export interface Todo {
   id: string;
   done: boolean;
@@ -47,13 +47,6 @@ export interface Section {
   name: string;
   todos: Todo[];
 }
-
-const timeblocks = [
-  { text: "Opening Hours" },
-  { text: "Daytime" },
-  { text: "Weekend" },
-  { text: "Weekdays" },
-];
 
 const tags: { text: string }[] = [
   { text: "Home" },
@@ -249,8 +242,10 @@ export default function Home() {
                   updateTodo(currentTodo.id, "timeblock", first);
                 }}
               >
-                {(timeblock) => (
-                  <SelectItem key={timeblock.text}>{timeblock.text}</SelectItem>
+                {(timeblocks) => (
+                  <SelectItem key={timeblocks.text}>
+                    {timeblocks.text}
+                  </SelectItem>
                 )}
               </Select>
               <Select
