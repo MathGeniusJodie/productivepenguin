@@ -8,7 +8,6 @@ yarn run dev
 
 ## Wishlist
 
-* smart autosorting and filtering (in progress)
 * edit tags and timeblocks
 * local persistent storage
 * log edits

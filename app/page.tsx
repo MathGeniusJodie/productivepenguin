@@ -15,13 +15,13 @@ import {
   ModalBody,
   ModalFooter,
   Button,
-  DateInput,
+  DatePicker,
   DateValue,
   Chip,
   Checkbox,
+  CardHeader,
 } from "@nextui-org/react";
-import { useCallback, useState } from "react";
-import { CalendarDateTime } from "@internationalized/date";
+import { useCallback } from "react";
 
 import { useTodos } from "./hooks/useTodos";
 import { useCurrentTodo } from "./hooks/useCurrentTodo";
@@ -60,26 +60,17 @@ const tags: { text: string }[] = [
   { text: "Work" },
   { text: "Groceries" },
   { text: "App" },
-  { text: "Mentally Difficult" },
+  { text: "Low Effort" },
 ];
 
 export default function Home() {
   //todo: fast clear date input and
 
-  const { setTodos, setFilters, sections, todos, filters } = useTodos();
+  const { setTodos, setFilters, sections, todos, filters, currentTime } =
+    useTodos();
 
   const { currentTodo, isOpen, handleOpen, onOpenChange } =
     useCurrentTodo(todos);
-
-  const [currentTime, setCurrentTime] = useState<DateValue>(
-    new CalendarDateTime(
-      new Date().getFullYear(),
-      new Date().getMonth(),
-      new Date().getDate(),
-      new Date().getHours(),
-      new Date().getMinutes(),
-    ),
-  );
 
   const updateTodo = useCallback(
     (id: string, field: keyof Todo, value: any) => {
@@ -111,8 +102,6 @@ export default function Home() {
     });
   }, [setTodos]);
 
-  console.log(todos, currentTodo);
-
   return (
     <div className="flex gap-2 items-stretch flex-col">
       <div className="flex gap-2 items-center">
@@ -139,7 +128,17 @@ export default function Home() {
         <div key={section.name}>
           <h2>{section.name}</h2>
           {section.todos.map((todo) => (
-            <Card key={todo.id}>
+            <Card
+              key={todo.id}
+              className={
+                todo.end && todo.end < currentTime
+                  ? "bg-red-100 dark:bg-red-900"
+                  : ""
+              }
+            >
+              {todo.end && todo.end < currentTime ? (
+                <CardHeader className="pb-0">Overdue</CardHeader>
+              ) : null}
               <CardBody>
                 <div className="flex gap-2 items-center">
                   <Checkbox
@@ -147,9 +146,7 @@ export default function Home() {
                     onValueChange={(selected) =>
                       updateTodo(todo.id, "done", selected)
                     }
-                  >
-                    <slot>{todo.text}</slot>
-                  </Checkbox>
+                  />
                   <Input
                     value={todo.text}
                     onValueChange={(t) => updateTodo(todo.id, "text", t)}
@@ -178,22 +175,41 @@ export default function Home() {
                 value={currentTodo.text}
                 onValueChange={(t) => updateTodo(currentTodo.id, "text", t)}
               />
-              <DateInput
-                granularity="minute"
-                label="Start Date"
-                value={currentTodo.start}
-                onChange={(date) => {
-                  updateTodo(currentTodo.id, "start", date);
-                }}
-              />
-              <DateInput
-                granularity="minute"
-                label="End Date"
-                value={currentTodo.end}
-                onChange={(date) => {
-                  updateTodo(currentTodo.id, "end", date);
-                }}
-              />
+              <div className="flex gap-2 items-center">
+                <DatePicker
+                  granularity="minute"
+                  label="Start Date"
+                  value={currentTodo.start}
+                  onChange={(date) => {
+                    updateTodo(currentTodo.id, "start", date);
+                  }}
+                />
+                <Button
+                  onPress={() => {
+                    updateTodo(currentTodo.id, "start", undefined);
+                  }}
+                >
+                  Clear
+                </Button>
+              </div>
+              <div className="flex gap-2 items-center">
+                <DatePicker
+                  granularity="minute"
+                  label="End Date"
+                  minValue={currentTodo.start}
+                  value={currentTodo.end}
+                  onChange={(date) => {
+                    updateTodo(currentTodo.id, "end", date);
+                  }}
+                />
+                <Button
+                  onPress={() => {
+                    updateTodo(currentTodo.id, "end", undefined);
+                  }}
+                >
+                  Clear
+                </Button>
+              </div>
               <Select
                 items={timeblocks}
                 label="Time Block"
