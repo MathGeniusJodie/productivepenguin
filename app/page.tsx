@@ -162,13 +162,16 @@ export default function Home() {
       {sections.map((section) => (
         <div key={section.name}>
           <h2>{section.name}</h2>
-          {section.todos.map((todo) => (
+          {section.todos.map((todo, index) => (
             <Card
               key={todo.id}
               className={
-                todo.end && parseDateTime(todo.end) < currentTime
+                (todo.end && parseDateTime(todo.end) < currentTime
                   ? "bg-red-100 dark:bg-red-900 border-red-500 dark:border-red-500"
-                  : ""
+                  : "") +
+                // remove border radius between cards
+                (index !== 0 ? " rounded-t-none" : "") +
+                (index !== section.todos.length - 1 ? " rounded-b-none" : "")
               }
             >
               {todo.end && parseDateTime(todo.end) < currentTime ? (

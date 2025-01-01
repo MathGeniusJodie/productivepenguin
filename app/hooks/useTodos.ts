@@ -42,11 +42,7 @@ const isInTimeblock = (time: CalendarDateTime, timeblockname: string) => {
 
 export const useTodos = () => {
   const [todos, setTodos] = useState<Todo[]>(() => {
-    // handle localStorage missing on server
-    if (globalThis === undefined) {
-      return [];
-    }
-    const savedTodos = localStorage.getItem("todos");
+    const savedTodos = globalThis?.localStorage?.getItem("todos");
 
     return savedTodos ? JSON.parse(savedTodos) : [];
   });
