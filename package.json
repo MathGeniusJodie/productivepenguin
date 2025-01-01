@@ -30,6 +30,7 @@
 		"next-themes": "^0.4.4",
 		"react": "18.3.1",
 		"react-dom": "18.3.1",
+		"uuid": "^11.0.3",
 		"yarn": "^1.22.22"
 	},
 	"devDependencies": {

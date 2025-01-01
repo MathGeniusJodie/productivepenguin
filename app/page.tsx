@@ -22,6 +22,7 @@ import {
 } from "@nextui-org/react";
 import { useCallback, useEffect } from "react";
 import { DateTimeDuration, parseDateTime } from "@internationalized/date";
+import { v4 as uuidv4 } from "uuid";
 
 import { useTodos } from "./hooks/useTodos";
 import { useCurrentTodo } from "./hooks/useCurrentTodo";
@@ -107,7 +108,7 @@ export default function Home() {
   const addTodo = useCallback(() => {
     setTodos((prevTodos) => {
       const newTodo: Todo = {
-        id: String(prevTodos.length + 1),
+        id: uuidv4(),
         done: false,
         text: "",
         tags: [],
@@ -142,6 +143,21 @@ export default function Home() {
         >
           {(tag) => <SelectItem key={tag.text}>{tag.text}</SelectItem>}
         </Select>
+        <div className="flex-grow" />
+        <Button
+          onPress={() => {
+            const data = JSON.stringify(todos, null, 2);
+            const blob = new Blob([data], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+
+            a.href = url;
+            a.download = "todos.json";
+            a.click();
+          }}
+        >
+          Export
+        </Button>
       </div>
       {sections.map((section) => (
         <div key={section.name}>

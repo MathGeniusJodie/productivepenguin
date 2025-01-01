@@ -8,10 +8,6 @@ yarn run dev
 
 ## Wishlist
 
-* export to json
-
-## Backburner
-
 * edit tags and timeblocks
 * log edits
 * limited manual ordering for things with same auto priority
