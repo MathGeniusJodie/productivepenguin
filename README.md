@@ -8,13 +8,12 @@ yarn run dev
 
 ## Wishlist
 
-* edit tags and timeblocks
-* local persistent storage
-* log edits
 * export to json
 
 ## Backburner
 
+* edit tags and timeblocks
+* log edits
 * limited manual ordering for things with same auto priority
 * multiple accounts and server side storage
 * share wishlist with friends

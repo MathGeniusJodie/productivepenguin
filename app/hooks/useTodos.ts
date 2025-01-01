@@ -3,6 +3,7 @@ import {
   CalendarDateTime,
   DateValue,
   getDayOfWeek,
+  parseDateTime,
 } from "@internationalized/date";
 
 import { Section, Todo } from "../page";
@@ -40,7 +41,11 @@ const isInTimeblock = (time: CalendarDateTime, timeblockname: string) => {
 };
 
 export const useTodos = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [todos, setTodos] = useState<Todo[]>(() => {
+    const savedTodos = localStorage.getItem("todos");
+
+    return savedTodos ? JSON.parse(savedTodos) : [];
+  });
   const [filters, setFilters] = useState<Set<string>>(new Set());
   const [currentTime, setCurrentTime] = useState<DateValue>(
     new CalendarDateTime(
@@ -96,7 +101,7 @@ export const useTodos = () => {
         Array.from(todo.dependencies).some(
           (id) => !todos.find((todo) => todo.id === id)?.done,
         ) ||
-        (todo.start != undefined && todo.start < currentTime) ||
+        (todo.start != undefined && parseDateTime(todo.start) < currentTime) ||
         // filter out todos outside of timeblock into blockeds
         (todo.timeblock &&
           !isInTimeblock(currentTime as CalendarDateTime, todo.timeblock))
@@ -126,7 +131,7 @@ export const useTodos = () => {
         return -1;
       }
 
-      return a.end.compare(b.end);
+      return parseDateTime(a.end).compare(parseDateTime(b.end));
     });
     // todo sort backburner
 

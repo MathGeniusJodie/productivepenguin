@@ -16,27 +16,27 @@ import {
   ModalFooter,
   Button,
   DatePicker,
-  DateValue,
   Chip,
   Checkbox,
   CardHeader,
 } from "@nextui-org/react";
 import { useCallback, useEffect } from "react";
-import { DateTimeDuration } from "@internationalized/date";
+import { DateTimeDuration, parseDateTime } from "@internationalized/date";
 
 import { useTodos } from "./hooks/useTodos";
 import { useCurrentTodo } from "./hooks/useCurrentTodo";
 import { timeblocks } from "./hooks/useTodos";
+// must be json serializable
 export interface Todo {
   id: string;
   done: boolean;
   text: string;
-  start?: DateValue;
-  end?: DateValue;
+  start?: string;
+  end?: string;
   timeblock?: string;
   tags: string[];
   backburner: boolean;
-  dependencies: Set<string>;
+  dependencies: string[];
   repeat?: {
     unit: "hours" | "days" | "weeks" | "months" | "years";
     ammount: number;
@@ -87,6 +87,10 @@ export default function Home() {
     return () => document.removeEventListener("click", handleBackdropClick);
   }, [onOpenChange]);
 
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }, [todos]);
+
   const updateTodo = useCallback(
     (id: string, field: keyof Todo, value: any) => {
       setTodos((prevTodos) => {
@@ -108,7 +112,7 @@ export default function Home() {
         text: "",
         tags: [],
         backburner: false,
-        dependencies: new Set(),
+        dependencies: [],
         sorted: false,
       };
       const updatedTodos = [newTodo, ...prevTodos];
@@ -146,12 +150,12 @@ export default function Home() {
             <Card
               key={todo.id}
               className={
-                todo.end && todo.end < currentTime
+                todo.end && parseDateTime(todo.end) < currentTime
                   ? "bg-red-100 dark:bg-red-900"
                   : ""
               }
             >
-              {todo.end && todo.end < currentTime ? (
+              {todo.end && parseDateTime(todo.end) < currentTime ? (
                 <CardHeader className="pb-0">Overdue</CardHeader>
               ) : null}
               <CardBody>
@@ -165,19 +169,23 @@ export default function Home() {
                           return;
                         }
                         delta[todo.repeat.unit] = todo.repeat.ammount;
-                        console.log(delta);
+
                         if (todo.start) {
                           updateTodo(
                             todo.id,
                             "start",
-                            todo.start.add(delta as DateTimeDuration),
+                            parseDateTime(todo.start)
+                              .add(delta as DateTimeDuration)
+                              .toString(),
                           );
                         }
                         if (todo.end) {
                           updateTodo(
                             todo.id,
                             "end",
-                            todo.end.add(delta as DateTimeDuration),
+                            parseDateTime(todo.end)
+                              .add(delta as DateTimeDuration)
+                              .toString(),
                           );
                         }
                       }}
@@ -235,9 +243,13 @@ export default function Home() {
                 <DatePicker
                   granularity="minute"
                   label="Start Date"
-                  value={currentTodo.start}
+                  value={
+                    currentTodo.start
+                      ? parseDateTime(currentTodo.start)
+                      : undefined
+                  }
                   onChange={(date) => {
-                    updateTodo(currentTodo.id, "start", date);
+                    updateTodo(currentTodo.id, "start", date?.toString());
                   }}
                 />
                 <Button
@@ -252,10 +264,16 @@ export default function Home() {
                 <DatePicker
                   granularity="minute"
                   label="End Date"
-                  minValue={currentTodo.start}
-                  value={currentTodo.end}
+                  minValue={
+                    currentTodo.start
+                      ? parseDateTime(currentTodo.start)
+                      : undefined
+                  }
+                  value={
+                    currentTodo.end ? parseDateTime(currentTodo.end) : undefined
+                  }
                   onChange={(date) => {
-                    updateTodo(currentTodo.id, "end", date);
+                    updateTodo(currentTodo.id, "end", date?.toString());
                   }}
                 />
                 <Button
@@ -320,10 +338,14 @@ export default function Home() {
                 onSelectionChange={(selected) => {
                   if (selected === null) return;
                   if (typeof selected === "number") return;
-                  let newDependencies = new Set(currentTodo.dependencies);
+                  let newDependencies = new Set(...currentTodo.dependencies);
 
                   newDependencies.add(selected);
-                  updateTodo(currentTodo.id, "dependencies", newDependencies);
+                  updateTodo(
+                    currentTodo.id,
+                    "dependencies",
+                    Array.from(newDependencies),
+                  );
                 }}
               >
                 {(todo) => (
@@ -340,13 +362,15 @@ export default function Home() {
                     <Chip
                       key={todo.id}
                       onClose={() => {
-                        let newDependencies = new Set(currentTodo.dependencies);
+                        let newDependencies = new Set(
+                          ...currentTodo.dependencies,
+                        );
 
                         newDependencies.delete(todo.id);
                         updateTodo(
                           currentTodo.id,
                           "dependencies",
-                          newDependencies,
+                          Array.from(newDependencies),
                         );
                       }}
                     >
