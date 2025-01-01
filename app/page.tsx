@@ -167,7 +167,7 @@ export default function Home() {
               key={todo.id}
               className={
                 todo.end && parseDateTime(todo.end) < currentTime
-                  ? "bg-red-100 dark:bg-red-900"
+                  ? "bg-red-100 dark:bg-red-900 border-red-500 dark:border-red-500"
                   : ""
               }
             >
