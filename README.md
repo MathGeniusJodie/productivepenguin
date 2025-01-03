@@ -8,11 +8,10 @@ yarn run dev
 
 ## Wishlist
 
+* persistent filter settings
 * edit tags and timeblocks
 * log edits
 * limited manual ordering for things with same auto priority
 * multiple accounts and server side storage
-* share wishlist with friends
-* calendar view
-* benchmark and optimize
+* share wishlist with friends and add private todos
 * capitalize repeats units
