@@ -21,7 +21,11 @@ import {
   CardHeader,
 } from "@nextui-org/react";
 import { useCallback, useEffect } from "react";
-import { DateTimeDuration, parseDateTime } from "@internationalized/date";
+import {
+  CalendarDateTime,
+  DateTimeDuration,
+  parseDateTime,
+} from "@internationalized/date";
 import { v4 as uuidv4 } from "uuid";
 
 import { useTodos } from "./hooks/useTodos";
@@ -30,6 +34,7 @@ import { timeblocks } from "./hooks/useTodos";
 // must be json serializable
 export interface Todo {
   id: string;
+  added: string;
   done: boolean;
   text: string;
   start?: string;
@@ -109,6 +114,13 @@ export default function Home() {
     setTodos((prevTodos) => {
       const newTodo: Todo = {
         id: uuidv4(),
+        added: new CalendarDateTime(
+          new Date().getFullYear(),
+          new Date().getMonth() + 1,
+          new Date().getDate(),
+          new Date().getHours(),
+          new Date().getMinutes(),
+        ).toString(),
         done: false,
         text: "",
         tags: [],
