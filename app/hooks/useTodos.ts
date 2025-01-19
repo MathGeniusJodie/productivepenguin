@@ -122,7 +122,8 @@ export const useTodos = () => {
 
     main.sort((a, b) => {
       if (a.end == undefined && b.end == undefined) {
-        return 0;
+        // oldest first
+        return parseDateTime(b.added).compare(parseDateTime(a.added));
       }
       if (a.end == undefined) {
         return 1;
@@ -131,6 +132,7 @@ export const useTodos = () => {
         return -1;
       }
 
+      // most urgent first
       return parseDateTime(a.end).compare(parseDateTime(b.end));
     });
     // todo sort backburner
