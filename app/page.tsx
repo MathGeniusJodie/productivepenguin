@@ -61,6 +61,7 @@ const tags: { text: string }[] = [
   { text: "Groceries" },
   { text: "App" },
   { text: "Low Effort" },
+  { text: "Quiet" },
 ];
 
 export default function Home() {
