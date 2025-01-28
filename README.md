@@ -7,7 +7,8 @@ yarn run dev
 ```
 
 ## Wishlist
-
+* add ai task splitting, time estimates and mvp
+* interface for subtasks showing dependencies under parent task
 * persistent filter settings
 * edit tags and timeblocks
 * log edits
