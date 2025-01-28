@@ -43,6 +43,8 @@ export interface Todo {
   tags: string[];
   backburner: boolean;
   dependencies: string[];
+  private?: boolean; //todo: add to UI
+  time?: number; // in minutes // todo: add to UI
   repeat?: {
     unit: "hours" | "days" | "weeks" | "months" | "years";
     ammount: number;
